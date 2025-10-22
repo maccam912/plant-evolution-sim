@@ -3538,6 +3538,7 @@ name = "plant-evolution-sim"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "getrandom",
  "noise",
  "rand 0.9.2",
 ]
