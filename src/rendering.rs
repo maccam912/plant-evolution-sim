@@ -169,139 +169,91 @@ fn add_voxel_faces(
     // Top face (counter-clockwise when viewed from above)
     if should_render_face(&neighbors[2], world) {
         let base = positions.len() as u32;
-        let face_positions = [
-            Vec3::new(world_pos.x - s, world_pos.y + s, world_pos.z + s),
-            Vec3::new(world_pos.x + s, world_pos.y + s, world_pos.z + s),
-            Vec3::new(world_pos.x + s, world_pos.y + s, world_pos.z - s),
-            Vec3::new(world_pos.x - s, world_pos.y + s, world_pos.z - s),
-        ];
         positions.extend_from_slice(&[
-            [face_positions[0].x, face_positions[0].y, face_positions[0].z],
-            [face_positions[1].x, face_positions[1].y, face_positions[1].z],
-            [face_positions[2].x, face_positions[2].y, face_positions[2].z],
-            [face_positions[3].x, face_positions[3].y, face_positions[3].z],
+            [world_pos.x - s, world_pos.y + s, world_pos.z + s],
+            [world_pos.x + s, world_pos.y + s, world_pos.z + s],
+            [world_pos.x + s, world_pos.y + s, world_pos.z - s],
+            [world_pos.x - s, world_pos.y + s, world_pos.z - s],
         ]);
         normals.extend_from_slice(&[[0.0, 1.0, 0.0]; 4]);
         uvs.extend_from_slice(&[[0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0]]);
         colors.extend_from_slice(&[c; 4]);
         indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
-        // Add reverse face for two-sided rendering
-        add_reverse_face(&face_positions, [0.0, 1.0, 0.0], c, positions, normals, uvs, colors, indices);
     }
 
     // Bottom face (counter-clockwise when viewed from below)
     if should_render_face(&neighbors[3], world) {
         let base = positions.len() as u32;
-        let face_positions = [
-            Vec3::new(world_pos.x - s, world_pos.y - s, world_pos.z - s),
-            Vec3::new(world_pos.x + s, world_pos.y - s, world_pos.z - s),
-            Vec3::new(world_pos.x + s, world_pos.y - s, world_pos.z + s),
-            Vec3::new(world_pos.x - s, world_pos.y - s, world_pos.z + s),
-        ];
         positions.extend_from_slice(&[
-            [face_positions[0].x, face_positions[0].y, face_positions[0].z],
-            [face_positions[1].x, face_positions[1].y, face_positions[1].z],
-            [face_positions[2].x, face_positions[2].y, face_positions[2].z],
-            [face_positions[3].x, face_positions[3].y, face_positions[3].z],
+            [world_pos.x - s, world_pos.y - s, world_pos.z - s],
+            [world_pos.x + s, world_pos.y - s, world_pos.z - s],
+            [world_pos.x + s, world_pos.y - s, world_pos.z + s],
+            [world_pos.x - s, world_pos.y - s, world_pos.z + s],
         ]);
         normals.extend_from_slice(&[[0.0, -1.0, 0.0]; 4]);
         uvs.extend_from_slice(&[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]]);
         colors.extend_from_slice(&[c; 4]);
         indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
-        // Add reverse face for two-sided rendering
-        add_reverse_face(&face_positions, [0.0, -1.0, 0.0], c, positions, normals, uvs, colors, indices);
     }
 
     // Front face (+Z) (counter-clockwise when viewed from front)
     if should_render_face(&neighbors[1], world) {
         let base = positions.len() as u32;
-        let face_positions = [
-            Vec3::new(world_pos.x - s, world_pos.y - s, world_pos.z + s),
-            Vec3::new(world_pos.x + s, world_pos.y - s, world_pos.z + s),
-            Vec3::new(world_pos.x + s, world_pos.y + s, world_pos.z + s),
-            Vec3::new(world_pos.x - s, world_pos.y + s, world_pos.z + s),
-        ];
         positions.extend_from_slice(&[
-            [face_positions[0].x, face_positions[0].y, face_positions[0].z],
-            [face_positions[1].x, face_positions[1].y, face_positions[1].z],
-            [face_positions[2].x, face_positions[2].y, face_positions[2].z],
-            [face_positions[3].x, face_positions[3].y, face_positions[3].z],
+            [world_pos.x - s, world_pos.y - s, world_pos.z + s],
+            [world_pos.x + s, world_pos.y - s, world_pos.z + s],
+            [world_pos.x + s, world_pos.y + s, world_pos.z + s],
+            [world_pos.x - s, world_pos.y + s, world_pos.z + s],
         ]);
         normals.extend_from_slice(&[[0.0, 0.0, 1.0]; 4]);
         uvs.extend_from_slice(&[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]]);
         colors.extend_from_slice(&[c; 4]);
         indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
-        // Add reverse face for two-sided rendering
-        add_reverse_face(&face_positions, [0.0, 0.0, 1.0], c, positions, normals, uvs, colors, indices);
     }
 
     // Back face (-Z) (counter-clockwise when viewed from back)
     if should_render_face(&neighbors[0], world) {
         let base = positions.len() as u32;
-        let face_positions = [
-            Vec3::new(world_pos.x - s, world_pos.y - s, world_pos.z - s),
-            Vec3::new(world_pos.x + s, world_pos.y - s, world_pos.z - s),
-            Vec3::new(world_pos.x + s, world_pos.y + s, world_pos.z - s),
-            Vec3::new(world_pos.x - s, world_pos.y + s, world_pos.z - s),
-        ];
         positions.extend_from_slice(&[
-            [face_positions[0].x, face_positions[0].y, face_positions[0].z],
-            [face_positions[1].x, face_positions[1].y, face_positions[1].z],
-            [face_positions[2].x, face_positions[2].y, face_positions[2].z],
-            [face_positions[3].x, face_positions[3].y, face_positions[3].z],
+            [world_pos.x - s, world_pos.y - s, world_pos.z - s],
+            [world_pos.x + s, world_pos.y - s, world_pos.z - s],
+            [world_pos.x + s, world_pos.y + s, world_pos.z - s],
+            [world_pos.x - s, world_pos.y + s, world_pos.z - s],
         ]);
         normals.extend_from_slice(&[[0.0, 0.0, -1.0]; 4]);
         uvs.extend_from_slice(&[[1.0, 0.0], [0.0, 0.0], [0.0, 1.0], [1.0, 1.0]]);
         colors.extend_from_slice(&[c; 4]);
         indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
-        // Add reverse face for two-sided rendering
-        add_reverse_face(&face_positions, [0.0, 0.0, -1.0], c, positions, normals, uvs, colors, indices);
     }
 
     // Right face (+X) (counter-clockwise when viewed from right)
     if should_render_face(&neighbors[5], world) {
         let base = positions.len() as u32;
-        let face_positions = [
-            Vec3::new(world_pos.x + s, world_pos.y - s, world_pos.z + s),
-            Vec3::new(world_pos.x + s, world_pos.y - s, world_pos.z - s),
-            Vec3::new(world_pos.x + s, world_pos.y + s, world_pos.z - s),
-            Vec3::new(world_pos.x + s, world_pos.y + s, world_pos.z + s),
-        ];
         positions.extend_from_slice(&[
-            [face_positions[0].x, face_positions[0].y, face_positions[0].z],
-            [face_positions[1].x, face_positions[1].y, face_positions[1].z],
-            [face_positions[2].x, face_positions[2].y, face_positions[2].z],
-            [face_positions[3].x, face_positions[3].y, face_positions[3].z],
+            [world_pos.x + s, world_pos.y - s, world_pos.z + s],
+            [world_pos.x + s, world_pos.y - s, world_pos.z - s],
+            [world_pos.x + s, world_pos.y + s, world_pos.z - s],
+            [world_pos.x + s, world_pos.y + s, world_pos.z + s],
         ]);
         normals.extend_from_slice(&[[1.0, 0.0, 0.0]; 4]);
         uvs.extend_from_slice(&[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]]);
         colors.extend_from_slice(&[c; 4]);
         indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
-        // Add reverse face for two-sided rendering
-        add_reverse_face(&face_positions, [1.0, 0.0, 0.0], c, positions, normals, uvs, colors, indices);
     }
 
     // Left face (-X) (counter-clockwise when viewed from left)
     if should_render_face(&neighbors[4], world) {
         let base = positions.len() as u32;
-        let face_positions = [
-            Vec3::new(world_pos.x - s, world_pos.y - s, world_pos.z - s),
-            Vec3::new(world_pos.x - s, world_pos.y - s, world_pos.z + s),
-            Vec3::new(world_pos.x - s, world_pos.y + s, world_pos.z + s),
-            Vec3::new(world_pos.x - s, world_pos.y + s, world_pos.z - s),
-        ];
         positions.extend_from_slice(&[
-            [face_positions[0].x, face_positions[0].y, face_positions[0].z],
-            [face_positions[1].x, face_positions[1].y, face_positions[1].z],
-            [face_positions[2].x, face_positions[2].y, face_positions[2].z],
-            [face_positions[3].x, face_positions[3].y, face_positions[3].z],
+            [world_pos.x - s, world_pos.y - s, world_pos.z - s],
+            [world_pos.x - s, world_pos.y - s, world_pos.z + s],
+            [world_pos.x - s, world_pos.y + s, world_pos.z + s],
+            [world_pos.x - s, world_pos.y + s, world_pos.z - s],
         ]);
         normals.extend_from_slice(&[[-1.0, 0.0, 0.0]; 4]);
         uvs.extend_from_slice(&[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]]);
         colors.extend_from_slice(&[c; 4]);
         indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
-        // Add reverse face for two-sided rendering
-        add_reverse_face(&face_positions, [-1.0, 0.0, 0.0], c, positions, normals, uvs, colors, indices);
     }
 }
 
@@ -311,33 +263,4 @@ fn should_render_face(neighbor_pos: &VoxelPos, world: &VoxelWorld) -> bool {
     } else {
         true // Render if outside bounds
     }
-}
-
-/// Helper to add a reverse face (for two-sided rendering)
-fn add_reverse_face(
-    positions: &[Vec3],
-    normal: [f32; 3],
-    color: [f32; 4],
-    vertex_positions: &mut Vec<[f32; 3]>,
-    normals: &mut Vec<[f32; 3]>,
-    uvs: &mut Vec<[f32; 2]>,
-    colors: &mut Vec<[f32; 4]>,
-    indices: &mut Vec<u32>,
-) {
-    let base = vertex_positions.len() as u32;
-
-    // Add vertices in reverse order for opposite winding
-    for pos in positions.iter().rev() {
-        vertex_positions.push([pos.x, pos.y, pos.z]);
-    }
-
-    // Reverse normal
-    normals.extend_from_slice(&[[-normal[0], -normal[1], -normal[2]]; 4]);
-
-    // Keep UVs the same
-    uvs.extend_from_slice(&[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]]);
-    colors.extend_from_slice(&[color; 4]);
-
-    // Indices for reverse face
-    indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
 }
