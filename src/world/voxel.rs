@@ -142,8 +142,9 @@ impl VoxelWorld {
         let total_voxels = width * height * depth;
         let mut voxels = vec![Voxel::default(); total_voxels];
 
-        // Initialize soil in lower half
-        for y in 0..(height / 2) {
+        // Initialize soil as a thin layer at the bottom (2 voxels thick)
+        const SOIL_LAYERS: usize = 2;
+        for y in 0..SOIL_LAYERS.min(height) {
             for x in 0..width {
                 for z in 0..depth {
                     let idx = Self::pos_to_index(x, y, z, width, depth);
