@@ -44,7 +44,7 @@ jobs:
           wasm-bindgen --no-typescript --target web \
             --out-dir ./out/ \
             --out-name "plant-evolution-sim" \
-            ./target/wasm32-unknown-unknown/release/predators-and-prey.wasm
+            ./target/wasm32-unknown-unknown/release/plant-evolution-sim.wasm
 
       - name: Copy index.html to output
         run: cp index.html ./out/
