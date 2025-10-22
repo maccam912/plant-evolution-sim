@@ -1,0 +1,68 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Rust dependencies and build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          cache-on-failure: true
+
+      - name: Install wasm-bindgen-cli
+        run: cargo install wasm-bindgen-cli --version 0.2.104
+
+      - name: Build for WASM
+        run: cargo build --release --target wasm32-unknown-unknown
+
+      - name: Generate WASM bindings
+        run: |
+          wasm-bindgen --no-typescript --target web \
+            --out-dir ./out/ \
+            --out-name "plant-evolution-sim" \
+            ./target/wasm32-unknown-unknown/release/predators-and-prey.wasm
+
+      - name: Copy index.html to output
+        run: cp index.html ./out/
+
+      - name: Copy assets to output (if exists)
+        run: |
+          if [ -d "assets" ]; then
+            cp -r assets ./out/
+          fi
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './out'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
