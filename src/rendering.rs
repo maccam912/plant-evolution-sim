@@ -36,6 +36,8 @@ pub fn setup_rendering(
     let material = materials.add(StandardMaterial {
         base_color: Color::WHITE,
         perceptual_roughness: 0.8,
+        // Enable vertex colors so voxels show their actual colors
+        alpha_mode: AlphaMode::Opaque,
         ..default()
     });
 
@@ -122,13 +124,28 @@ fn create_world_mesh(world: &VoxelWorld) -> Mesh {
         }
     }
 
-    // For now, just return a simple ground plane
-    // Full voxel mesh rendering would require Bevy's internal mesh APIs
-    // which are not publicly exposed in 0.17
-    Mesh::from(Plane3d::default().mesh().size(
-        WORLD_WIDTH as f32 * VOXEL_SIZE,
-        WORLD_DEPTH as f32 * VOXEL_SIZE,
-    ))
+    // Create mesh from collected voxel data
+    if positions.is_empty() {
+        // If no voxels, return a simple ground plane
+        return Mesh::from(Plane3d::default().mesh().size(
+            WORLD_WIDTH as f32 * VOXEL_SIZE,
+            WORLD_DEPTH as f32 * VOXEL_SIZE,
+        ));
+    }
+
+    // Start with a plane mesh and replace its data
+    let mut mesh = Mesh::from(Plane3d::default().mesh().size(1.0, 1.0));
+
+    // Replace all attributes with our voxel data
+    mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
+    mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
+    mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
+    mesh.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
+
+    // Set indices
+    mesh.insert_indices(bevy::mesh::Indices::U32(indices));
+
+    mesh
 }
 
 /// Add faces for a voxel
@@ -179,7 +196,65 @@ fn add_voxel_faces(
         indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
     }
 
-    // Front, back, left, right faces (simplified - add if needed)
+    // Front face (+Z)
+    if should_render_face(&neighbors[1], world) {
+        let base = positions.len() as u32;
+        positions.extend_from_slice(&[
+            [world_pos.x - s, world_pos.y - s, world_pos.z + s],
+            [world_pos.x - s, world_pos.y + s, world_pos.z + s],
+            [world_pos.x + s, world_pos.y + s, world_pos.z + s],
+            [world_pos.x + s, world_pos.y - s, world_pos.z + s],
+        ]);
+        normals.extend_from_slice(&[[0.0, 0.0, 1.0]; 4]);
+        uvs.extend_from_slice(&[[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]);
+        colors.extend_from_slice(&[c; 4]);
+        indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
+    }
+
+    // Back face (-Z)
+    if should_render_face(&neighbors[0], world) {
+        let base = positions.len() as u32;
+        positions.extend_from_slice(&[
+            [world_pos.x + s, world_pos.y - s, world_pos.z - s],
+            [world_pos.x + s, world_pos.y + s, world_pos.z - s],
+            [world_pos.x - s, world_pos.y + s, world_pos.z - s],
+            [world_pos.x - s, world_pos.y - s, world_pos.z - s],
+        ]);
+        normals.extend_from_slice(&[[0.0, 0.0, -1.0]; 4]);
+        uvs.extend_from_slice(&[[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]);
+        colors.extend_from_slice(&[c; 4]);
+        indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
+    }
+
+    // Right face (+X)
+    if should_render_face(&neighbors[5], world) {
+        let base = positions.len() as u32;
+        positions.extend_from_slice(&[
+            [world_pos.x + s, world_pos.y - s, world_pos.z - s],
+            [world_pos.x + s, world_pos.y - s, world_pos.z + s],
+            [world_pos.x + s, world_pos.y + s, world_pos.z + s],
+            [world_pos.x + s, world_pos.y + s, world_pos.z - s],
+        ]);
+        normals.extend_from_slice(&[[1.0, 0.0, 0.0]; 4]);
+        uvs.extend_from_slice(&[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]]);
+        colors.extend_from_slice(&[c; 4]);
+        indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
+    }
+
+    // Left face (-X)
+    if should_render_face(&neighbors[4], world) {
+        let base = positions.len() as u32;
+        positions.extend_from_slice(&[
+            [world_pos.x - s, world_pos.y - s, world_pos.z + s],
+            [world_pos.x - s, world_pos.y - s, world_pos.z - s],
+            [world_pos.x - s, world_pos.y + s, world_pos.z - s],
+            [world_pos.x - s, world_pos.y + s, world_pos.z + s],
+        ]);
+        normals.extend_from_slice(&[[-1.0, 0.0, 0.0]; 4]);
+        uvs.extend_from_slice(&[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]]);
+        colors.extend_from_slice(&[c; 4]);
+        indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
+    }
 }
 
 fn should_render_face(neighbor_pos: &VoxelPos, world: &VoxelWorld) -> bool {
