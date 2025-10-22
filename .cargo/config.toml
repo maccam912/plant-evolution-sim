@@ -2,9 +2,10 @@
 # Based on Bevy's recommended configuration
 
 # Linux - using mold (fastest option)
-[target.x86_64-unknown-linux-gnu]
-linker = "clang"
-rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+# Disabled because mold is not installed
+# [target.x86_64-unknown-linux-gnu]
+# linker = "clang"
+# rustflags = ["-C", "link-arg=-fuse-ld=mold"]
 
 # Windows - using rust-lld
 [target.x86_64-pc-windows-msvc]

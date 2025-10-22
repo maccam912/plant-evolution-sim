@@ -33,6 +33,8 @@ fn main() {
         .insert_resource(GraphsVisibility::default())
         .insert_resource(RenderState::default())
         .insert_resource(SimulationState::default())
+        .insert_resource(UIState::default())
+        .insert_resource(TouchState::default())
         // Startup systems
         .add_systems(Startup, (
             setup_camera,
@@ -61,12 +63,16 @@ fn main() {
             camera_rotation_system,
             camera_zoom_system,
             camera_pan_system,
+            camera_touch_system,
         ))
         // Statistics and UI
         .add_systems(Update, (
             collect_statistics_system,
             update_stats_display_system,
             update_world_mesh_system,
+            ui_toggle_button_system,
+            ui_keyboard_toggle_system,
+            update_panel_visibility_system,
         ))
         // Control systems
         .add_systems(Update, pause_system)
