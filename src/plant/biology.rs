@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use crate::config::*;
-use crate::world::{VoxelWorld, VoxelPos, VoxelType};
+use crate::world::{VoxelWorld, VoxelPos, VoxelType, YearCycle, get_seasonal_multiplier};
 use super::genetics::Genome;
 
 /// Component to track plant's energy and state
@@ -47,8 +47,12 @@ impl PlantStructure {
 pub fn photosynthesis_system(
     mut plants: Query<(&mut PlantBiology, &PlantStructure, &Genome)>,
     world: Res<VoxelWorld>,
+    year_cycle: Res<YearCycle>,
     time: Res<Time>,
 ) {
+    // Get seasonal multiplier - this creates the harsh winter bottleneck
+    let seasonal_multiplier = get_seasonal_multiplier(&year_cycle);
+
     for (mut biology, structure, genome) in plants.iter_mut() {
         if !biology.is_alive {
             continue;
@@ -61,7 +65,9 @@ pub fn photosynthesis_system(
             if let Some(voxel) = world.get(leaf_pos) {
                 let light = voxel.environment.light_level;
                 let efficiency = genome.get_photosynthesis_efficiency();
-                total_energy_gain += light * PHOTOSYNTHESIS_EFFICIENCY * efficiency * time.delta_secs();
+                // Apply seasonal multiplier - during winter (5%), plants get almost no energy
+                // and must survive on their energy reserves
+                total_energy_gain += light * PHOTOSYNTHESIS_EFFICIENCY * efficiency * seasonal_multiplier * time.delta_secs();
             }
         }
 

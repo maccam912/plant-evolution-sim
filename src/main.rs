@@ -28,6 +28,7 @@ fn main() {
         // Resources
         .insert_resource(VoxelWorld::new(WORLD_WIDTH, WORLD_HEIGHT, WORLD_DEPTH))
         .insert_resource(DayNightCycle::default())
+        .insert_resource(YearCycle::default())
         .insert_resource(StatisticsHistory::default())
         .insert_resource(GenerationStats::default())
         .insert_resource(GraphsVisibility::default())
@@ -46,6 +47,7 @@ fn main() {
         // Environment systems
         .add_systems(Update, (
             update_day_night_system,
+            update_year_cycle_system,
             update_light_system,
             regenerate_resources_system,
         ).run_if(simulation_running))

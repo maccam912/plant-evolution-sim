@@ -81,3 +81,63 @@ pub fn get_sunlight_multiplier(cycle: &DayNightCycle) -> f32 {
     let angle = cycle.time_of_day * std::f32::consts::PI * 2.0;
     (angle.sin() * 0.5 + 0.5).max(0.1) // Minimum 10% light at night
 }
+
+/// Resource to track yearly seasonal cycle
+#[derive(Resource)]
+pub struct YearCycle {
+    pub time_of_year: f32, // 0.0 to 1.0
+    pub year_length: f32,  // seconds
+}
+
+impl Default for YearCycle {
+    fn default() -> Self {
+        Self {
+            time_of_year: 0.0, // Start at spring
+            year_length: 300.0, // 5 minute years (300 seconds)
+        }
+    }
+}
+
+/// System to update yearly cycle
+pub fn update_year_cycle_system(mut cycle: ResMut<YearCycle>, time: Res<Time>) {
+    cycle.time_of_year += time.delta_secs() / cycle.year_length;
+    cycle.time_of_year %= 1.0;
+}
+
+/// Get seasonal multiplier based on time of year
+/// This creates a harsh winter bottleneck where plants must survive on energy reserves
+pub fn get_seasonal_multiplier(cycle: &YearCycle) -> f32 {
+    // Seasons:
+    // 0.00 - 0.25: Spring (growing season) - 80% light
+    // 0.25 - 0.50: Summer (peak season) - 100% light
+    // 0.50 - 0.75: Autumn (declining) - 60% light
+    // 0.75 - 1.00: Winter (harsh bottleneck) - 5% light
+
+    if cycle.time_of_year < 0.25 {
+        // Spring: linearly increase from 60% to 100%
+        0.6 + (cycle.time_of_year / 0.25) * 0.4
+    } else if cycle.time_of_year < 0.50 {
+        // Summer: stay at 100%
+        1.0
+    } else if cycle.time_of_year < 0.75 {
+        // Autumn: linearly decrease from 100% to 40%
+        let progress = (cycle.time_of_year - 0.50) / 0.25;
+        1.0 - (progress * 0.6)
+    } else {
+        // Winter: harsh bottleneck at 5% (force plants to use reserves)
+        0.05
+    }
+}
+
+/// Get the current season name for display
+pub fn get_season_name(cycle: &YearCycle) -> &'static str {
+    if cycle.time_of_year < 0.25 {
+        "Spring"
+    } else if cycle.time_of_year < 0.50 {
+        "Summer"
+    } else if cycle.time_of_year < 0.75 {
+        "Autumn"
+    } else {
+        "Winter"
+    }
+}
