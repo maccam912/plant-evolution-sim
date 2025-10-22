@@ -131,3 +131,39 @@ fn pause_system(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_core_initialization() {
+        // Test that core resources can be initialized
+        let world = VoxelWorld::new(WORLD_WIDTH, WORLD_HEIGHT, WORLD_DEPTH);
+        assert!(world.get(&VoxelPos::new(0, 0, 0)).is_some());
+
+        let day_night = DayNightCycle::default();
+        assert_eq!(day_night.time_of_day, 0.0);
+
+        let year_cycle = YearCycle::default();
+        assert_eq!(year_cycle.day_of_year, 0);
+
+        let stats = StatisticsHistory::default();
+        assert_eq!(stats.population_history.len(), 0);
+
+        println!("Core initialization test passed!");
+    }
+
+    #[test]
+    fn test_plant_spawning_logic() {
+        // Test that we can create plant genome and components without full Bevy context
+        let mut rng = rand::rng();
+        let genome = Genome::random(&mut rng);
+
+        // Verify genome has valid values
+        assert!(genome.max_height > 0);
+        assert!(genome.leaf_density > 0.0);
+
+        println!("Plant spawning logic test passed!");
+    }
+}
