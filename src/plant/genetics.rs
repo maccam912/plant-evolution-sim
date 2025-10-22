@@ -39,6 +39,7 @@ pub struct Genome {
     pub photosynthesis_efficiency: Gene, // Energy gained from light
     pub reproduction_threshold: Gene,   // Energy needed to reproduce
     pub mutation_rate: Gene,            // How much offspring mutate
+    pub horizontal_growth_tendency: Gene, // Preference for horizontal vs vertical growth
 }
 
 impl Genome {
@@ -53,6 +54,7 @@ impl Genome {
             photosynthesis_efficiency: Gene::random(rng),
             reproduction_threshold: Gene::random(rng),
             mutation_rate: Gene::random(rng),
+            horizontal_growth_tendency: Gene::random(rng),
         }
     }
 
@@ -67,6 +69,7 @@ impl Genome {
         child.branching_frequency.mutate(rng);
         child.photosynthesis_efficiency.mutate(rng);
         child.reproduction_threshold.mutate(rng);
+        child.horizontal_growth_tendency.mutate(rng);
 
         // Mutation rate itself can mutate, but less frequently
         if rng.random::<f32>() < MUTATION_RATE * 0.5 {
@@ -85,9 +88,10 @@ impl Genome {
             + (self.branching_frequency.value - other.branching_frequency.value).abs()
             + (self.photosynthesis_efficiency.value - other.photosynthesis_efficiency.value).abs()
             + (self.reproduction_threshold.value - other.reproduction_threshold.value).abs()
-            + (self.mutation_rate.value - other.mutation_rate.value).abs();
+            + (self.mutation_rate.value - other.mutation_rate.value).abs()
+            + (self.horizontal_growth_tendency.value - other.horizontal_growth_tendency.value).abs();
 
-        diff_sum / 8.0 // Average difference
+        diff_sum / 9.0 // Average difference
     }
 
     /// Get actual values from normalized genes
@@ -129,6 +133,11 @@ impl Genome {
     pub fn get_mutation_rate(&self) -> f32 {
         // 0.01 to 0.2 per gene
         0.01 + self.mutation_rate.value * 0.19
+    }
+
+    pub fn get_horizontal_growth_tendency(&self) -> f32 {
+        // 0.0 to 1.0 (0 = vertical only, 1 = horizontal only, 0.5 = balanced)
+        self.horizontal_growth_tendency.value
     }
 }
 

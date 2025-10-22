@@ -35,6 +35,7 @@ fn main() {
         .insert_resource(SimulationState::default())
         .insert_resource(UIState::default())
         .insert_resource(TouchState::default())
+        .insert_resource(SpeciesCounter { next_id: INITIAL_SEED_COUNT as u32 })
         // Startup systems
         .add_systems(Startup, (
             setup_camera,
@@ -83,7 +84,7 @@ fn main() {
 fn spawn_initial_plants(mut commands: Commands, world: Res<VoxelWorld>) {
     let mut rng = rand::rng();
 
-    for _ in 0..INITIAL_SEED_COUNT {
+    for species_id in 0..INITIAL_SEED_COUNT as u32 {
         // Find a random soil position
         let x = rng.random_range(0..WORLD_WIDTH) as i32;
         let z = rng.random_range(0..WORLD_DEPTH) as i32;
@@ -95,7 +96,7 @@ fn spawn_initial_plants(mut commands: Commands, world: Res<VoxelWorld>) {
         if let Some(voxel) = world.get(&pos) {
             if matches!(voxel.voxel_type, VoxelType::Soil) {
                 let genome = Genome::random(&mut rng);
-                spawn_plant(&mut commands, pos, genome, 0, None);
+                spawn_plant(&mut commands, pos, genome, 0, None, species_id);
             }
         }
     }

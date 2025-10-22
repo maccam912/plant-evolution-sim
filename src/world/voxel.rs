@@ -6,7 +6,7 @@ use crate::config::*;
 pub enum VoxelType {
     Air,
     Soil,
-    PlantMaterial { plant_id: u32 },
+    PlantMaterial { plant_id: u32, species_id: u32 },
 }
 
 impl VoxelType {
@@ -26,8 +26,38 @@ impl VoxelType {
         match self {
             VoxelType::Air => Color::srgba(0.0, 0.0, 0.0, 0.0),
             VoxelType::Soil => Color::srgb(0.4, 0.3, 0.2),
-            VoxelType::PlantMaterial { .. } => Color::srgb(0.2, 0.8, 0.3),
+            VoxelType::PlantMaterial { species_id, .. } => {
+                // Generate distinct color for each species using simple hash
+                let hue = (*species_id as f32 * 137.5) % 360.0; // Golden angle for good distribution
+                let saturation = 0.6 + ((*species_id % 3) as f32 * 0.15); // 0.6-0.9
+                let lightness = 0.4 + ((*species_id % 5) as f32 * 0.1); // 0.4-0.8
+
+                // Convert HSL to RGB
+                Self::hsl_to_rgb(hue, saturation, lightness)
+            },
         }
+    }
+
+    fn hsl_to_rgb(h: f32, s: f32, l: f32) -> Color {
+        let c = (1.0 - (2.0 * l - 1.0).abs()) * s;
+        let x = c * (1.0 - ((h / 60.0) % 2.0 - 1.0).abs());
+        let m = l - c / 2.0;
+
+        let (r, g, b) = if h < 60.0 {
+            (c, x, 0.0)
+        } else if h < 120.0 {
+            (x, c, 0.0)
+        } else if h < 180.0 {
+            (0.0, c, x)
+        } else if h < 240.0 {
+            (0.0, x, c)
+        } else if h < 300.0 {
+            (x, 0.0, c)
+        } else {
+            (c, 0.0, x)
+        };
+
+        Color::srgb(r + m, g + m, b + m)
     }
 }
 
