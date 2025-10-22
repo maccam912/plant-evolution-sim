@@ -166,29 +166,29 @@ fn add_voxel_faces(
     // Check each direction and add face if neighbor is empty
     let neighbors = pos.neighbors();
 
-    // Top face
+    // Top face (counter-clockwise when viewed from above)
     if should_render_face(&neighbors[2], world) {
         let base = positions.len() as u32;
         positions.extend_from_slice(&[
-            [world_pos.x - s, world_pos.y + s, world_pos.z - s],
-            [world_pos.x + s, world_pos.y + s, world_pos.z - s],
-            [world_pos.x + s, world_pos.y + s, world_pos.z + s],
             [world_pos.x - s, world_pos.y + s, world_pos.z + s],
+            [world_pos.x + s, world_pos.y + s, world_pos.z + s],
+            [world_pos.x + s, world_pos.y + s, world_pos.z - s],
+            [world_pos.x - s, world_pos.y + s, world_pos.z - s],
         ]);
         normals.extend_from_slice(&[[0.0, 1.0, 0.0]; 4]);
-        uvs.extend_from_slice(&[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]]);
+        uvs.extend_from_slice(&[[0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0]]);
         colors.extend_from_slice(&[c; 4]);
         indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
     }
 
-    // Bottom face
+    // Bottom face (counter-clockwise when viewed from below)
     if should_render_face(&neighbors[3], world) {
         let base = positions.len() as u32;
         positions.extend_from_slice(&[
             [world_pos.x - s, world_pos.y - s, world_pos.z - s],
-            [world_pos.x - s, world_pos.y - s, world_pos.z + s],
-            [world_pos.x + s, world_pos.y - s, world_pos.z + s],
             [world_pos.x + s, world_pos.y - s, world_pos.z - s],
+            [world_pos.x + s, world_pos.y - s, world_pos.z + s],
+            [world_pos.x - s, world_pos.y - s, world_pos.z + s],
         ]);
         normals.extend_from_slice(&[[0.0, -1.0, 0.0]; 4]);
         uvs.extend_from_slice(&[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]]);
@@ -196,44 +196,44 @@ fn add_voxel_faces(
         indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
     }
 
-    // Front face (+Z)
+    // Front face (+Z) (counter-clockwise when viewed from front)
     if should_render_face(&neighbors[1], world) {
         let base = positions.len() as u32;
         positions.extend_from_slice(&[
             [world_pos.x - s, world_pos.y - s, world_pos.z + s],
-            [world_pos.x - s, world_pos.y + s, world_pos.z + s],
-            [world_pos.x + s, world_pos.y + s, world_pos.z + s],
             [world_pos.x + s, world_pos.y - s, world_pos.z + s],
+            [world_pos.x + s, world_pos.y + s, world_pos.z + s],
+            [world_pos.x - s, world_pos.y + s, world_pos.z + s],
         ]);
         normals.extend_from_slice(&[[0.0, 0.0, 1.0]; 4]);
-        uvs.extend_from_slice(&[[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]);
+        uvs.extend_from_slice(&[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]]);
         colors.extend_from_slice(&[c; 4]);
         indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
     }
 
-    // Back face (-Z)
+    // Back face (-Z) (counter-clockwise when viewed from back)
     if should_render_face(&neighbors[0], world) {
         let base = positions.len() as u32;
         positions.extend_from_slice(&[
+            [world_pos.x - s, world_pos.y - s, world_pos.z - s],
             [world_pos.x + s, world_pos.y - s, world_pos.z - s],
             [world_pos.x + s, world_pos.y + s, world_pos.z - s],
             [world_pos.x - s, world_pos.y + s, world_pos.z - s],
-            [world_pos.x - s, world_pos.y - s, world_pos.z - s],
         ]);
         normals.extend_from_slice(&[[0.0, 0.0, -1.0]; 4]);
-        uvs.extend_from_slice(&[[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]);
+        uvs.extend_from_slice(&[[1.0, 0.0], [0.0, 0.0], [0.0, 1.0], [1.0, 1.0]]);
         colors.extend_from_slice(&[c; 4]);
         indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
     }
 
-    // Right face (+X)
+    // Right face (+X) (counter-clockwise when viewed from right)
     if should_render_face(&neighbors[5], world) {
         let base = positions.len() as u32;
         positions.extend_from_slice(&[
-            [world_pos.x + s, world_pos.y - s, world_pos.z - s],
             [world_pos.x + s, world_pos.y - s, world_pos.z + s],
-            [world_pos.x + s, world_pos.y + s, world_pos.z + s],
+            [world_pos.x + s, world_pos.y - s, world_pos.z - s],
             [world_pos.x + s, world_pos.y + s, world_pos.z - s],
+            [world_pos.x + s, world_pos.y + s, world_pos.z + s],
         ]);
         normals.extend_from_slice(&[[1.0, 0.0, 0.0]; 4]);
         uvs.extend_from_slice(&[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]]);
@@ -241,14 +241,14 @@ fn add_voxel_faces(
         indices.extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
     }
 
-    // Left face (-X)
+    // Left face (-X) (counter-clockwise when viewed from left)
     if should_render_face(&neighbors[4], world) {
         let base = positions.len() as u32;
         positions.extend_from_slice(&[
-            [world_pos.x - s, world_pos.y - s, world_pos.z + s],
             [world_pos.x - s, world_pos.y - s, world_pos.z - s],
-            [world_pos.x - s, world_pos.y + s, world_pos.z - s],
+            [world_pos.x - s, world_pos.y - s, world_pos.z + s],
             [world_pos.x - s, world_pos.y + s, world_pos.z + s],
+            [world_pos.x - s, world_pos.y + s, world_pos.z - s],
         ]);
         normals.extend_from_slice(&[[-1.0, 0.0, 0.0]; 4]);
         uvs.extend_from_slice(&[[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]]);
