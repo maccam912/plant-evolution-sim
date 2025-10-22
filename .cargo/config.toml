@@ -1,0 +1,28 @@
+# Fast linker configuration for improved build times
+# Based on Bevy's recommended configuration
+
+# Linux - using mold (fastest option)
+[target.x86_64-unknown-linux-gnu]
+linker = "clang"
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+
+# Windows - using rust-lld
+[target.x86_64-pc-windows-msvc]
+linker = "rust-lld.exe"
+
+# macOS (x86_64) - default linker is already fast, but LLD available if needed
+# Uncomment if you want to use LLD on macOS
+# [target.x86_64-apple-darwin]
+# rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+
+# macOS (Apple Silicon) - default linker is already fast
+# Uncomment if you want to use LLD on macOS
+# [target.aarch64-apple-darwin]
+# rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+
+# Enable parallel frontend compilation (nightly only, commented out)
+# Uncomment if using nightly Rust for even faster builds
+# [build]
+# rustflags = ["-Z", "threads=8"]
+
+# Note: Profile optimization settings are in Cargo.toml
