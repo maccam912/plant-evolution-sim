@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use super::collector::StatisticsHistory;
+use crate::world::{YearCycle, get_season_name};
 
 /// Resource to control graph visibility
 #[derive(Resource, Default)]
@@ -136,15 +137,20 @@ pub fn setup_stats_ui(mut commands: Commands) {
 /// Update stats display
 pub fn update_stats_display_system(
     stats: Res<StatisticsHistory>,
+    year_cycle: Res<YearCycle>,
     mut query: Query<&mut Text, With<StatsText>>,
     time: Res<Time>,
 ) {
     if let Some(latest) = stats.snapshots.last() {
+        let season = get_season_name(&year_cycle);
+        let year_progress = (year_cycle.time_of_year * 100.0) as u32;
+
         for mut text in query.iter_mut() {
             **text = format!(
                 "Plant Evolution Simulator\n\
                 \n\
                 Time: {:.1}s\n\
+                Season: {} ({}%)\n\
                 Population: {}\n\
                 Species: {}\n\
                 \n\
@@ -161,6 +167,8 @@ pub fn update_stats_display_system(
                 \n\
                 Total Biomass: {} voxels",
                 time.elapsed_secs(),
+                season,
+                year_progress,
                 latest.population,
                 latest.species_count,
                 latest.avg_energy,
