@@ -115,12 +115,23 @@ pub fn maintenance_cost_system(
             continue;
         }
 
-        // Calculate maintenance cost based on total mass
-        let maintenance = structure.voxel_positions.len() as f32
+        // Calculate base maintenance cost
+        let base_maintenance = structure.voxel_positions.len() as f32
             * BASE_MAINTENANCE_COST
             * time.delta_secs();
 
-        biology.energy -= maintenance;
+        // Add gravity-based transport cost - higher voxels cost more energy
+        let root_height = structure.root_position.y;
+        let mut gravity_cost = 0.0;
+        for voxel_pos in &structure.voxel_positions {
+            // Height difference from root (in voxels)
+            let height_diff = (voxel_pos.y - root_height).max(0) as f32;
+            // Energy cost increases with height (0.01 energy per voxel per unit height)
+            gravity_cost += height_diff * 0.01 * time.delta_secs();
+        }
+
+        let total_maintenance = base_maintenance + gravity_cost;
+        biology.energy -= total_maintenance;
 
         // Check if plant dies from lack of energy
         if biology.energy <= 0.0 {

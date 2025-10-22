@@ -5,11 +5,21 @@ use crate::world::{VoxelWorld, VoxelPos, VoxelType};
 use super::biology::{PlantBiology, PlantStructure, GrowthTimer};
 use super::genetics::{Genome, GeneticLineage};
 
+/// Tracks the next species ID to assign
+#[derive(Resource, Default)]
+pub struct SpeciesCounter {
+    pub next_id: u32,
+}
+
+/// Threshold for genetic distance to be considered a new species
+const SPECIES_DIVERGENCE_THRESHOLD: f32 = 0.25;
+
 /// System to handle plant reproduction
 pub fn reproduction_system(
     mut commands: Commands,
     mut plants: Query<(Entity, &mut PlantBiology, &PlantStructure, &Genome, &GeneticLineage)>,
     world: Res<VoxelWorld>,
+    mut species_counter: ResMut<SpeciesCounter>,
 ) {
     let mut rng = rand::rng();
     let mut seeds_to_spawn = Vec::new();
@@ -31,11 +41,26 @@ pub fn reproduction_system(
                 // Create offspring genome
                 let offspring_genome = genome.reproduce(&mut rng);
 
+                // Calculate genetic distance to determine species
+                let genetic_distance = genome.distance(&offspring_genome);
+                let offspring_species_id = if genetic_distance > SPECIES_DIVERGENCE_THRESHOLD {
+                    // Diverged enough to be a new species
+                    let new_species_id = species_counter.next_id;
+                    species_counter.next_id += 1;
+                    println!("New species {} emerged from species {} (distance: {:.3})",
+                             new_species_id, lineage.species_id, genetic_distance);
+                    new_species_id
+                } else {
+                    // Same species as parent
+                    lineage.species_id
+                };
+
                 seeds_to_spawn.push((
                     seed_pos,
                     offspring_genome,
                     lineage.generation + 1,
                     Some(entity),
+                    offspring_species_id,
                 ));
 
                 println!(
@@ -48,8 +73,8 @@ pub fn reproduction_system(
     }
 
     // Spawn seeds
-    for (pos, genome, generation, parent_id) in seeds_to_spawn {
-        spawn_plant(&mut commands, pos, genome, generation, parent_id);
+    for (pos, genome, generation, parent_id, species_id) in seeds_to_spawn {
+        spawn_plant(&mut commands, pos, genome, generation, parent_id, species_id);
     }
 }
 
@@ -104,6 +129,7 @@ pub fn spawn_plant(
     genome: Genome,
     generation: u32,
     parent_id: Option<Entity>,
+    species_id: u32,
 ) {
     commands.spawn((
         PlantBiology::default(),
@@ -112,7 +138,7 @@ pub fn spawn_plant(
         GeneticLineage {
             generation,
             parent_id,
-            species_id: 0, // Will be calculated later
+            species_id,
         },
         GrowthTimer::default(),
     ));

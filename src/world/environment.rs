@@ -16,9 +16,19 @@ pub fn update_light_system(mut world: ResMut<VoxelWorld>) {
                 if let Some(voxel) = world.get_mut(&pos) {
                     voxel.environment.light_level = light;
 
-                    // Reduce light if there's solid material
-                    if voxel.voxel_type.is_solid() {
-                        light *= SUNLIGHT_FALLOFF;
+                    // Reduce light based on material type
+                    match voxel.voxel_type {
+                        VoxelType::PlantMaterial { .. } => {
+                            // Plants block 40% of light (canopy shading)
+                            light *= 0.6;
+                        }
+                        VoxelType::Soil => {
+                            // Soil blocks almost all light
+                            light *= 0.1;
+                        }
+                        VoxelType::Air => {
+                            // Air doesn't block light
+                        }
                     }
                 }
             }

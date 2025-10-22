@@ -2,9 +2,9 @@
 /// These values can be changed and require recompilation
 
 /// World dimensions (in voxels)
-pub const WORLD_WIDTH: usize = 128;
-pub const WORLD_HEIGHT: usize = 64;
-pub const WORLD_DEPTH: usize = 128;
+pub const WORLD_WIDTH: usize = 64;
+pub const WORLD_HEIGHT: usize = 32;
+pub const WORLD_DEPTH: usize = 64;
 
 /// Voxel size (meters)
 pub const VOXEL_SIZE: f32 = 0.5;

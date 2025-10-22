@@ -4,17 +4,17 @@ use rand::prelude::{SliceRandom, IndexedRandom};
 use crate::config::*;
 use crate::world::{VoxelWorld, VoxelPos, VoxelType};
 use super::biology::{PlantBiology, PlantStructure, GrowthTimer};
-use super::genetics::Genome;
+use super::genetics::{Genome, GeneticLineage};
 
 /// System to handle plant growth
 pub fn plant_growth_system(
-    mut plants: Query<(Entity, &mut PlantBiology, &mut PlantStructure, &Genome, &mut GrowthTimer)>,
+    mut plants: Query<(Entity, &mut PlantBiology, &mut PlantStructure, &Genome, &GeneticLineage, &mut GrowthTimer)>,
     mut world: ResMut<VoxelWorld>,
     time: Res<Time>,
 ) {
     let mut rng = rand::rng();
 
-    for (entity, mut biology, mut structure, genome, mut growth_timer) in plants.iter_mut() {
+    for (entity, mut biology, mut structure, genome, lineage, mut growth_timer) in plants.iter_mut() {
         if !biology.is_alive {
             continue;
         }
@@ -42,13 +42,17 @@ pub fn plant_growth_system(
             continue;
         }
 
-        // Try to grow upward or branch
+        // Try to grow upward or horizontally based on genetic tendency
+        let horizontal_tendency = genome.get_horizontal_growth_tendency();
+        let should_grow_horizontal = rng.random::<f32>() < horizontal_tendency;
         let should_branch = rng.random::<f32>() < genome.get_branching_frequency();
 
-        if should_branch {
-            // Try to grow a new branch from an existing voxel
+        let species_id = lineage.species_id;
+
+        if should_grow_horizontal || should_branch {
+            // Try to grow horizontally from an existing voxel
             if let Some(&growth_pos) = structure.voxel_positions.choose(&mut rng) {
-                try_grow_branch(
+                try_grow_horizontal(
                     entity,
                     &mut biology,
                     &mut structure,
@@ -56,6 +60,7 @@ pub fn plant_growth_system(
                     growth_pos,
                     &mut world,
                     &mut rng,
+                    species_id,
                 );
             }
         } else {
@@ -73,6 +78,7 @@ pub fn plant_growth_system(
                     highest_pos,
                     &mut world,
                     &mut rng,
+                    species_id,
                 );
             }
         }
@@ -87,6 +93,7 @@ pub fn plant_growth_system(
                 genome,
                 &mut world,
                 &mut rng,
+                species_id,
             );
         }
     }
@@ -101,21 +108,22 @@ fn try_grow_upward(
     from_pos: VoxelPos,
     world: &mut VoxelWorld,
     rng: &mut impl Rng,
+    species_id: u32,
 ) {
     let new_pos = VoxelPos::new(from_pos.x, from_pos.y + 1, from_pos.z);
 
     if can_grow_at(new_pos, world) {
-        grow_voxel(plant_id, new_pos, biology, structure, world);
+        grow_voxel(plant_id, new_pos, biology, structure, world, species_id);
 
         // Maybe add a leaf
         if rng.random::<f32>() < genome.get_leaf_density() {
-            add_leaf(plant_id, new_pos, biology, structure, world, rng);
+            add_leaf(plant_id, new_pos, biology, structure, world, rng, species_id);
         }
     }
 }
 
-/// Try to grow a branch
-fn try_grow_branch(
+/// Try to grow horizontally
+fn try_grow_horizontal(
     plant_id: Entity,
     biology: &mut PlantBiology,
     structure: &mut PlantStructure,
@@ -123,6 +131,7 @@ fn try_grow_branch(
     from_pos: VoxelPos,
     world: &mut VoxelWorld,
     rng: &mut impl Rng,
+    species_id: u32,
 ) {
     // Try to grow in a random horizontal direction
     let directions = [
@@ -134,11 +143,11 @@ fn try_grow_branch(
 
     if let Some(&new_pos) = directions.choose(rng) {
         if can_grow_at(new_pos, world) {
-            grow_voxel(plant_id, new_pos, biology, structure, world);
+            grow_voxel(plant_id, new_pos, biology, structure, world, species_id);
 
             // Higher chance of leaf on branches
             if rng.random::<f32>() < genome.get_leaf_density() * 1.5 {
-                add_leaf(plant_id, new_pos, biology, structure, world, rng);
+                add_leaf(plant_id, new_pos, biology, structure, world, rng, species_id);
             }
         }
     }
@@ -152,6 +161,7 @@ fn try_grow_root(
     genome: &Genome,
     world: &mut VoxelWorld,
     rng: &mut impl Rng,
+    species_id: u32,
 ) {
     // Find deepest root
     let deepest_root = structure
@@ -170,7 +180,7 @@ fn try_grow_root(
     let new_pos = VoxelPos::new(deepest_root.x, deepest_root.y - 1, deepest_root.z);
 
     if can_grow_root_at(new_pos, world) {
-        grow_voxel(plant_id, new_pos, biology, structure, world);
+        grow_voxel(plant_id, new_pos, biology, structure, world, species_id);
         structure.root_positions.push(new_pos);
     }
 }
@@ -183,6 +193,7 @@ fn add_leaf(
     structure: &mut PlantStructure,
     world: &mut VoxelWorld,
     rng: &mut impl Rng,
+    species_id: u32,
 ) {
     // Try to place leaf adjacent to the position
     let offsets = [
@@ -197,7 +208,7 @@ fn add_leaf(
         let leaf_pos = VoxelPos::new(pos.x + offset.x, pos.y + offset.y, pos.z + offset.z);
 
         if can_grow_at(leaf_pos, world) {
-            grow_voxel(plant_id, leaf_pos, biology, structure, world);
+            grow_voxel(plant_id, leaf_pos, biology, structure, world, species_id);
             structure.leaf_positions.push(leaf_pos);
         }
     }
@@ -228,6 +239,7 @@ fn grow_voxel(
     biology: &mut PlantBiology,
     structure: &mut PlantStructure,
     world: &mut VoxelWorld,
+    species_id: u32,
 ) {
     // Deduct energy cost
     biology.energy -= BASE_GROWTH_COST;
@@ -240,6 +252,7 @@ fn grow_voxel(
     if let Some(voxel) = world.get_mut(&pos) {
         voxel.voxel_type = VoxelType::PlantMaterial {
             plant_id: plant_id.index(),
+            species_id,
         };
     }
 }
