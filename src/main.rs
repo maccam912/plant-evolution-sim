@@ -146,10 +146,10 @@ mod tests {
         assert_eq!(day_night.time_of_day, 0.0);
 
         let year_cycle = YearCycle::default();
-        assert_eq!(year_cycle.day_of_year, 0);
+        assert_eq!(year_cycle.time_of_year, 0.0);
 
         let stats = StatisticsHistory::default();
-        assert_eq!(stats.population_history.len(), 0);
+        assert_eq!(stats.snapshots.len(), 0);
 
         println!("Core initialization test passed!");
     }
@@ -161,8 +161,8 @@ mod tests {
         let genome = Genome::random(&mut rng);
 
         // Verify genome has valid values
-        assert!(genome.max_height > 0);
-        assert!(genome.leaf_density > 0.0);
+        assert!(genome.max_height.value > 0.0);
+        assert!(genome.leaf_density.value > 0.0);
 
         println!("Plant spawning logic test passed!");
     }
