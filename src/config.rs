@@ -3,7 +3,7 @@
 
 /// World dimensions (in voxels)
 pub const WORLD_WIDTH: usize = 64;
-pub const WORLD_HEIGHT: usize = 32;
+pub const WORLD_HEIGHT: usize = 64;
 pub const WORLD_DEPTH: usize = 64;
 
 /// Voxel size (meters)
@@ -25,7 +25,7 @@ pub const WATER_REGEN_RATE: f32 = 0.2; // Per tick
 
 /// Plant growth parameters
 pub const BASE_GROWTH_COST: f32 = 10.0; // Energy cost per new voxel
-pub const BASE_MAINTENANCE_COST: f32 = 0.1; // Energy per voxel per tick
+pub const BASE_MAINTENANCE_COST: f32 = 0.3; // Energy per voxel per tick (increased for more plant death)
 pub const PHOTOSYNTHESIS_EFFICIENCY: f32 = 0.5; // Energy per light per tick
 pub const ROOT_ABSORPTION_RATE: f32 = 1.0; // Resource absorption per tick
 
