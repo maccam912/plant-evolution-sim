@@ -25,11 +25,6 @@ pub fn plant_growth_system(
             continue;
         }
 
-        // Check if plant has enough energy to grow
-        if biology.energy < BASE_GROWTH_COST {
-            continue;
-        }
-
         // Check if plant has reached max height
         let current_height = structure
             .voxel_positions
@@ -37,6 +32,17 @@ pub fn plant_growth_system(
             .map(|p| p.y)
             .max()
             .unwrap_or(0);
+
+        // Calculate approximate growth cost based on current height
+        // (actual cost will be calculated in grow_voxel based on exact position)
+        let height_above_root = (current_height - structure.root_position.y).max(0) as f32;
+        let estimated_height_multiplier = 1.0 + (height_above_root * 0.1);
+        let estimated_growth_cost = BASE_GROWTH_COST * estimated_height_multiplier;
+
+        // Check if plant has enough energy to grow at current height
+        if biology.energy < estimated_growth_cost {
+            continue;
+        }
 
         if current_height >= genome.get_max_height() + structure.root_position.y {
             continue;
@@ -241,8 +247,17 @@ fn grow_voxel(
     world: &mut VoxelWorld,
     species_id: u32,
 ) {
+    // Calculate height-based growth cost
+    // The higher above the root, the more energy it costs to grow
+    let height_above_root = (pos.y - structure.root_position.y).max(0) as f32;
+
+    // Exponential scaling: cost = BASE_GROWTH_COST * (1 + 0.1 * height)
+    // This makes tall growth progressively harder
+    let height_multiplier = 1.0 + (height_above_root * 0.1);
+    let total_growth_cost = BASE_GROWTH_COST * height_multiplier;
+
     // Deduct energy cost
-    biology.energy -= BASE_GROWTH_COST;
+    biology.energy -= total_growth_cost;
 
     // Add to structure
     structure.voxel_positions.push(pos);

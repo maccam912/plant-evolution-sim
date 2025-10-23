@@ -132,8 +132,9 @@ pub fn maintenance_cost_system(
         for voxel_pos in &structure.voxel_positions {
             // Height difference from root (in voxels)
             let height_diff = (voxel_pos.y - root_height).max(0) as f32;
-            // Energy cost increases with height (0.01 energy per voxel per unit height)
-            gravity_cost += height_diff * 0.01 * time.delta_secs();
+            // Energy cost increases with height (0.05 energy per voxel per unit height)
+            // Increased from 0.01 to make tall plants struggle more
+            gravity_cost += height_diff * 0.05 * time.delta_secs();
         }
 
         let total_maintenance = base_maintenance + gravity_cost;
